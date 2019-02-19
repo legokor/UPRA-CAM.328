@@ -79,9 +79,8 @@ int process_sicl_msg()
     Serial.begin(SICL_BAUD);
     Serial.println(F("CAM: HK request arrived")); //debug
   #endif
-//    processTMHKRcommand(msg_index);
+    msg_code = processTMHKRcommand(msg_index);
     msg_index=0;
-    msg_code = 2;
   }  
   return msg_code;
   
@@ -134,6 +133,58 @@ void processTMCAMcommand(int msg_index)
       }
     }
   }
+}
+
+int processTMHKRcommand(int msg_index)
+{
+  int i, j, k, IntegerPart;
+  char submodule[3];
+  // $TMHKR,P1       *47
+  //      submodule  chksm
+  //        1          
+ 
+  IntegerPart = 1;
+  cam_attribute = 0;
+ 
+  for (i=0, j=0, k=0; (i<msg_index) && (j<10); i++) // We start at 7 so we ignore the '$$TMCAM,'
+  {
+    if ((msg[i] == ',') || (msg[i] == '*'))
+    {
+      j++;    // Segment index
+      k=0;    // Index into target variable
+      IntegerPart = 1;
+    }
+    else
+    {
+      if (j == 1)
+      {
+        if (msg[i] != '*')
+        {        
+          submodule[k] = msg[i];
+          k++;
+        }
+      }
+    }
+  }
+  if(submodule[0] != 'P')
+  {
+    return 0;
+  }
+  if(submodule[1] == '1')
+  {
+    return 2;
+  }
+}
+
+int send_hk_packet(void)
+{
+    get_pcb_temperature();
+    Serial.print(F("$TCHKD,"));
+    Serial.print(pcb_temp, DEC);
+    Serial.print(F(","));
+    Serial.print(picture_index);
+    Serial.println("*47");
+    return 0;   
 }
 
 int processCAMcommand(void)

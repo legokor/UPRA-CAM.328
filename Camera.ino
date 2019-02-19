@@ -7,7 +7,7 @@
 #include "SICL.h"
 #include "storage.h"
 #include "memorysaver.h"
-
+#include "temperature.h"
 
 void setup() {
   // put your setup code here, to run once:
@@ -16,9 +16,9 @@ void setup() {
   Wire.begin();
   SPI.begin();
   sicl_init();
-  pinMode(CAM_VL_CS,OUTPUT);
+  pinMode(CAM_VIS_CS,OUTPUT);
   pinMode(CAM_IR_CS,OUTPUT);
-  digitalWrite(CAM_VL_CS, HIGH);
+  digitalWrite(CAM_VIS_CS, HIGH);
   digitalWrite(CAM_IR_CS, HIGH);
    
   Serial.println(F("ArduCAM Start!"));
@@ -49,15 +49,27 @@ void loop() {
  //   cli();//stop interrupts
     if(inputString[0]=='d')
     {
-     // ics_send_vl_cam_sicl();
+     // ics_send_vis_cam_sicl();
      sd_store_image();
     }
-    if (process_sicl_msg() == 1)
+    msg_idx = process_sicl_msg();
+    switch(msg_idx)
     {
-      //send_LSPDinitOK();
-      setBusBusy();
-      processCAMcommand();
-      clrBusBusy();
+      case 1:
+      {
+        setBusBusy();
+        processCAMcommand();
+        clrBusBusy();
+        break;        
+      }
+      case 2:
+      {
+        setBusBusy();
+        send_hk_packet();
+        clrBusBusy();
+        break;
+      }
+      default: break;
     }
      // clear the string:
     inputString = "";

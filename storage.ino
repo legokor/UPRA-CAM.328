@@ -112,11 +112,11 @@ int32_t sd_store_image(void)
 {
   int32_t ret = 0;
   
-  #ifdef CAM_VL_PRESENT
+  #ifdef CAM_VIS_PRESENT
     //Flush the FIFO
-    CAM_VL.flush_fifo();
+    CAM_VIS.flush_fifo();
     //Clear the capture done flag
-    CAM_VL.clear_fifo_flag();
+    CAM_VIS.clear_fifo_flag();
   #endif
 
   #ifdef CAM_IR_PRESENT
@@ -127,24 +127,30 @@ int32_t sd_store_image(void)
   #endif
     
   //Start capture
-  #ifdef CAM_VL_PRESENT
-    CAM_VL.start_capture();
+  #ifdef CAM_VIS_PRESENT
+    if(is_cam_vis_present)
+    {
+      CAM_VIS.start_capture();
+    }
   #endif
   #ifdef CAM_IR_PRESENT
-    CAM_IR.start_capture();
+    if(is_cam_ir_present)
+    {
+      CAM_IR.start_capture();
+    }
   #endif
   
   Serial.println(F("start Capture"));
-  #ifdef CAM_VL_PRESENT
-    while(!CAM_VL.get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK));
+  #ifdef CAM_VIS_PRESENT
+    while((!CAM_VIS.get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)) && (is_cam_vis_present));
   #endif
   #ifdef CAM_IR_PRESENT
-    while(!CAM_IR.get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK));
+    while((!CAM_IR.get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)) && (is_cam_ir_present));
   #endif
   Serial.println(F("Capture Done."));  
 
-  #ifdef CAM_VL_PRESENT
-    ret = sd_store_vl_image();
+  #ifdef CAM_VIS_PRESENT
+    ret = sd_store_vis_image();
   #endif
   #ifdef CAM_IR_PRESENT
     ret += sd_store_ir_image();
@@ -154,8 +160,8 @@ int32_t sd_store_image(void)
   return ret;
 }
 
-#ifdef CAM_VL_PRESENT
-int32_t sd_store_vl_image(void)
+#ifdef CAM_VIS_PRESENT
+int32_t sd_store_vis_image(void)
 {
   char sd_str[13];
   byte sd_buf[256];
@@ -165,7 +171,12 @@ int32_t sd_store_vl_image(void)
   uint32_t sd_fifo_lenght = 0;
   bool sd_is_header = false;
 
-  sd_fifo_lenght = CAM_VL.read_fifo_length();
+  if( is_cam_vis_present == false)
+  {
+    return -4;
+  }
+
+  sd_fifo_lenght = CAM_VIS.read_fifo_length();
   Serial.print(F("The fifo length is :"));
   Serial.println(sd_fifo_lenght, DEC);
   
@@ -180,9 +191,9 @@ int32_t sd_store_vl_image(void)
     return -2;
   }
   //Consd_struct a file name
-  sprintf(sd_str, "%05d_vl.jpg", picture_index);
+  sprintf(sd_str, "%05d_vis.jpg", picture_index);
 //  itoa(picture_index, sd_str, 10);
-//  sd_strcat(sd_str, "_vl.jpg");
+//  sd_strcat(sd_str, "_vis.jpg");
   
   //Open the new file
   //outFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);
@@ -190,8 +201,8 @@ int32_t sd_store_vl_image(void)
     Serial.println(F("File open failed"));
     return -3;
   }
-  CAM_VL.CS_LOW();
-  CAM_VL.set_fifo_burst();
+  CAM_VIS.CS_LOW();
+  CAM_VIS.set_fifo_burst();
   while ( sd_fifo_lenght-- )
   {
     sd_tmp_last = sd_tmp;
@@ -201,7 +212,7 @@ int32_t sd_store_vl_image(void)
     {
       sd_buf[i++] = sd_tmp;  //save the last  0XD9     
       //Write the remain bytes in the sd_buffer
-      CAM_VL.CS_HIGH();
+      CAM_VIS.CS_HIGH();
       outFile.write(sd_buf, i);    
       //Close the file
   //    outFile.close();
@@ -217,12 +228,12 @@ int32_t sd_store_vl_image(void)
       else
       {
         //Write 256 bytes image data to file
-        CAM_VL.CS_HIGH();
+        CAM_VIS.CS_HIGH();
         outFile.write(sd_buf, 256);
         i = 0;
         sd_buf[i++] = sd_tmp;
-        CAM_VL.CS_LOW();
-        CAM_VL.set_fifo_burst();
+        CAM_VIS.CS_LOW();
+        CAM_VIS.set_fifo_burst();
       }        
     }
     else if ((sd_tmp == 0xD8) & (sd_tmp_last == 0xFF))
@@ -250,6 +261,11 @@ int32_t sd_store_ir_image(void)
   uint32_t sd_fifo_lenght = 0;
   bool sd_is_header = false;
 
+  if( is_cam_ir_present == false)
+  {
+    return -4;
+  }
+  
   sd_fifo_lenght = CAM_IR.read_fifo_length();
   Serial.print(F("The fifo length is :"));
   Serial.println(sd_fifo_lenght, DEC);
@@ -265,9 +281,9 @@ int32_t sd_store_ir_image(void)
     return -2;
   }
   //Consd_struct a file name
-  sprintf(sd_str, "%05_vl.jpg", picture_index);
+  sprintf(sd_str, "%05_vis.jpg", picture_index);
 //  itoa(picture_index, sd_str, 10);
-//  sd_strcat(sd_str, "_vl.jpg");
+//  sd_strcat(sd_str, "_vis.jpg");
   
   //Open the new file
   //outFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);

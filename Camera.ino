@@ -16,8 +16,9 @@ void setup() {
   Wire.begin();
   SPI.begin();
   sicl_init();
-  pinMode(CAM_VIS_CS,OUTPUT);
-  pinMode(CAM_IR_CS,OUTPUT);
+  pinMode(SD_PRESENT, INPUT_PULLUP);
+  pinMode(CAM_VIS_CS, OUTPUT);
+  pinMode(CAM_IR_CS, OUTPUT);
   digitalWrite(CAM_VIS_CS, HIGH);
   digitalWrite(CAM_IR_CS, HIGH);
    
@@ -41,7 +42,17 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
+  if( digitalRead(SD_PRESENT) == LOW)
+  {
+    if(sd_init() == 0)
+    {
+      card_present = true;
+    }    
+  }
+  else
+  {
+    card_present = false;
+  }
   
   if (stringComplete) 
   {

@@ -17,7 +17,7 @@ const int CAM_IR_CS = 9;
 
 #if defined (OV2640_MINI_2MP)
 ArduCAM CAM_VIS( OV2640, CAM_VIS_CS );
-ArduCAM CAM_IR( OV2640, CAM_VIS_CS );
+ArduCAM CAM_IR( OV2640, CAM_IR_CS );
 #else
 ArduCAM CAM_VIS( OV5642, CAM_VIS_CS );
 #endif

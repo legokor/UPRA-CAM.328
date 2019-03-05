@@ -4,6 +4,13 @@ int sd_init(void)
   char input = 0;
   int i;
   int ret = 0;
+
+  card_present = false;
+  
+  if( digitalRead(SD_PRESENT) == HIGH)
+  {
+    return -1;
+  }
   
   if (!sd.begin(SD_CS, SPI_HALF_SPEED)) 
   {
@@ -13,7 +20,7 @@ int sd_init(void)
     delay(10);
     #endif
  
-    return 1;
+    return -2;
   }
   if (outFile.open("index.dat", O_READ))
   {
@@ -45,7 +52,7 @@ int sd_init(void)
     picture_index = 0;
     if (!outFile.open("index.dat", O_RDWR | O_CREAT | O_AT_END))
     {
-      ret = 2;
+      ret = -3;
     }
     else
     {
@@ -91,7 +98,7 @@ int sd_init(void)
 
     if(!sd_store_intervalometer_timeout(10))
     {
-      ret = 3;
+      ret = -4;
     }
     else
     {
@@ -151,8 +158,10 @@ int32_t sd_store_image(void)
 
   #ifdef CAM_VIS_PRESENT
     ret = sd_store_vis_image();
+    delay(500);
   #endif
   #ifdef CAM_IR_PRESENT
+    delay(500);
     ret += sd_store_ir_image();
   #endif
   sd_store_picture_index();
@@ -170,6 +179,7 @@ int32_t sd_store_vis_image(void)
   uint8_t sd_tmp = 0,sd_tmp_last=0;
   uint32_t sd_fifo_lenght = 0;
   bool sd_is_header = false;
+  SdFile imgFile;
 
   if( is_cam_vis_present == false)
   {
@@ -196,8 +206,8 @@ int32_t sd_store_vis_image(void)
 //  sd_strcat(sd_str, "_vis.jpg");
   
   //Open the new file
-  //outFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);
-  if(!outFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END)){
+  //imgFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);
+  if(!imgFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END)){
     Serial.println(F("File open failed"));
     return -3;
   }
@@ -213,9 +223,9 @@ int32_t sd_store_vis_image(void)
       sd_buf[i++] = sd_tmp;  //save the last  0XD9     
       //Write the remain bytes in the sd_buffer
       CAM_VIS.CS_HIGH();
-      outFile.write(sd_buf, i);    
+      imgFile.write(sd_buf, i);    
       //Close the file
-  //    outFile.close();
+  //    imgFile.close();
       Serial.println(F("Image save OK."));
       sd_is_header = false;
       i = 0;
@@ -229,7 +239,7 @@ int32_t sd_store_vis_image(void)
       {
         //Write 256 bytes image data to file
         CAM_VIS.CS_HIGH();
-        outFile.write(sd_buf, 256);
+        imgFile.write(sd_buf, 256);
         i = 0;
         sd_buf[i++] = sd_tmp;
         CAM_VIS.CS_LOW();
@@ -244,7 +254,7 @@ int32_t sd_store_vis_image(void)
     } 
   }
   //Close the file
-  outFile.close();
+  imgFile.close();
 
   return 0;
 }
@@ -260,7 +270,8 @@ int32_t sd_store_ir_image(void)
   uint8_t sd_tmp = 0,sd_tmp_last=0;
   uint32_t sd_fifo_lenght = 0;
   bool sd_is_header = false;
-
+  SdFile imgFile;
+  
   if( is_cam_ir_present == false)
   {
     return -4;
@@ -281,13 +292,13 @@ int32_t sd_store_ir_image(void)
     return -2;
   }
   //Consd_struct a file name
-  sprintf(sd_str, "%05_vis.jpg", picture_index);
+  sprintf(sd_str, "%05d_ir.jpg", picture_index);
 //  itoa(picture_index, sd_str, 10);
 //  sd_strcat(sd_str, "_vis.jpg");
   
   //Open the new file
-  //outFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);
-  if(!outFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END)){
+  //imgFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);
+  if(!imgFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END)){
     Serial.println(F("File open failed"));
     return -3;
   }
@@ -303,9 +314,9 @@ int32_t sd_store_ir_image(void)
       sd_buf[i++] = sd_tmp;  //save the last  0XD9     
       //Write the remain bytes in the sd_buffer
       CAM_IR.CS_HIGH();
-      outFile.write(sd_buf, i);    
+      imgFile.write(sd_buf, i);    
       //Close the file
-  //    outFile.close();
+  //    imgFile.close();
       Serial.println(F("Image save OK."));
       sd_is_header = false;
       i = 0;
@@ -319,7 +330,7 @@ int32_t sd_store_ir_image(void)
       {
         //Write 256 bytes image data to file
         CAM_IR.CS_HIGH();
-        outFile.write(sd_buf, 256);
+        imgFile.write(sd_buf, 256);
         i = 0;
         sd_buf[i++] = sd_tmp;
         CAM_IR.CS_LOW();
@@ -334,7 +345,7 @@ int32_t sd_store_ir_image(void)
     } 
   }
   //Close the file
-  outFile.close();
+  imgFile.close();
 
   return 0;
 }

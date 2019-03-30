@@ -42,18 +42,18 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if( digitalRead(SD_PRESENT) == LOW)
-  {
-    if(sd_init() == 0)
-    {
-      card_present = true;
-    }    
-  }
-  else
-  {
-    card_present = false;
-  }
-  
+//  if( digitalRead(SD_PRESENT) == LOW)
+//  {
+//    if(sd_init() == 0)
+//    {
+//      card_present = true;
+//    }    
+//  }
+//  else
+//  {
+//    card_present = false;
+//  }
+//  
   if (stringComplete) 
   {
    // Serial.println(inputString);

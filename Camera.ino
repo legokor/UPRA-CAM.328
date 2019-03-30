@@ -8,6 +8,9 @@
 #include "storage.h"
 #include "memorysaver.h"
 #include "temperature.h"
+#include "LED.h"
+
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -21,9 +24,14 @@ void setup() {
   pinMode(CAM_IR_CS, OUTPUT);
   digitalWrite(CAM_VIS_CS, HIGH);
   digitalWrite(CAM_IR_CS, HIGH);
+
+  led_init();
+  
 #ifdef DEBUG   
   Serial.println(F("ArduCAM Start!"));
 #endif
+
+  led_on();
 
   //Initialize SD Card
 #ifdef DEBUG
@@ -43,7 +51,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  
+  led_status_indicator();
   if (stringComplete) 
   {
    // Serial.println(inputString);

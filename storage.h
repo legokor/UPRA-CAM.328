@@ -5,7 +5,7 @@
 #define SD_PRESENT 4
 
 SdFat sd;
-SdFile outFile;
+
 bool card_present = false;
 
 

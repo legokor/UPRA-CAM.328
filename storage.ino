@@ -4,7 +4,8 @@ int sd_init(void)
   char input = 0;
   int i;
   int ret = 0;
-
+  SdFile outFile;
+  
   card_present = false;
   
   if( digitalRead(SD_PRESENT) == HIGH)
@@ -40,7 +41,8 @@ int sd_init(void)
     picture_index = sd_str_to_int(tmp_sd_str);
     
     #ifdef DEBUG  
-    Serial.println(F("CAM: index set"));
+    Serial.print(F("CAM: index set:"));
+    Serial.println(picture_index);
     #else
     delay(10);
     #endif
@@ -353,16 +355,18 @@ int32_t sd_store_ir_image(void)
 
 void sd_store_picture_index(void)
 {
+  SdFile idxFile;
   picture_index++;
-  if(outFile.open("index.dat", O_RDWR | O_CREAT | O_TRUNC | O_AT_END))
+  if(idxFile.open("index.dat", O_RDWR | O_CREAT | O_TRUNC | O_AT_END))
   {
-    outFile.println(picture_index, DEC);
+    idxFile.println(picture_index, DEC);
   }
-  outFile.close();  
+  idxFile.close();  
 }
 
 uint32_t sd_store_intervalometer_timeout(uint32_t timeout)
 {
+    SdFile outFile;
     if(timeout > 120)
     {
       intervalometer_timeout = 120;

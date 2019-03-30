@@ -21,8 +21,9 @@ void setup() {
   pinMode(CAM_IR_CS, OUTPUT);
   digitalWrite(CAM_VIS_CS, HIGH);
   digitalWrite(CAM_IR_CS, HIGH);
-   
+#ifdef DEBUG   
   Serial.println(F("ArduCAM Start!"));
+#endif
 
   //Initialize SD Card
 #ifdef DEBUG
@@ -42,17 +43,6 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  if( digitalRead(SD_PRESENT) == LOW)
-  {
-    if(sd_init() == 0)
-    {
-      card_present = true;
-    }    
-  }
-  else
-  {
-    card_present = false;
-  }
   
   if (stringComplete) 
   {
@@ -90,17 +80,17 @@ void loop() {
   
   if(is_take_picture)
   {
-    if(card_present)
+    if((card_present) && ((is_cam_ir_present) || (is_cam_vis_present)))
     {
       sd_store_image();
     }
-    else
-    {
-      if(sd_init() == 0)
-      {
-        card_present = true;
-      }
-    }
+//    else
+//    {
+//      if(sd_init() == 0)
+//      {
+//        card_present = true;
+//      }
+//    }
     is_take_picture = false;
   }
 }

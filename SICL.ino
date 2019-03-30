@@ -181,8 +181,39 @@ int send_hk_packet(void)
     get_pcb_temperature();
     Serial.print(F("$TCHKD,"));
     Serial.print(pcb_temp, DEC);
-    Serial.print(F(","));
+    if(is_cam_vis_present)
+    {
+      Serial.print(F(",1"));
+      
+    }
+    else
+    {
+      Serial.print(F(",0"));
+    }
+
+    if(is_cam_ir_present)
+    {
+      Serial.print(F(",1"));
+      
+    }
+    else
+    {
+      Serial.print(F(",0"));
+    }
+
+    if(card_present)
+    {
+      Serial.print(F(",1,"));
+      
+    }
+    else
+    {
+      Serial.print(F(",0,"));
+    }
+    
     Serial.print(picture_index);
+    Serial.print(F(","));
+    Serial.print(intervalometer_timeout, DEC);
     Serial.println("*47");
     return 0;   
 }

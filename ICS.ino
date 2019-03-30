@@ -27,7 +27,9 @@ int32_t ics_CAM_VIS_init(void)
   temp = CAM_VIS.read_reg(ARDUCHIP_TEST1);
    
   if (temp != 0x55){
+  #ifdef DEBUG 
     Serial.println("SPI1 interface Error!");
+  #endif
     is_cam_vis_present = false;
     return -1;
     //while(1);
@@ -40,13 +42,17 @@ int32_t ics_CAM_VIS_init(void)
     CAM_VIS.rdSensorReg8_8(OV2640_CHIPID_LOW, &pid);
     if ((vid != 0x26) || (pid != 0x42))
     {
+    #ifdef DEBUG 
       Serial.println("Can't find OV2640 module!");
+    #endif
       is_cam_vis_present = false;
       return -2;
     }
     else
     {
+    #ifdef DEBUG 
       Serial.println("OV2640 detected.");
+    #endif
       is_cam_vis_present = true;
     }
   #else
@@ -56,13 +62,17 @@ int32_t ics_CAM_VIS_init(void)
     CAM_VIS.rdSensorReg16_8(OV5642_CHIPID_LOW, &pid);
     if((vid != 0x56) || (pid != 0x42))
     {
-      Serial.println("Can't find OV5642 module!");
+    #ifdef DEBUG 
+      Serial.println("Can't find OV2640 module!");
+    #endif
       is_cam_vis_present = false;
       return -2;
     }
     else
     {
-      Serial.println("OV5642 detected.");
+    #ifdef DEBUG 
+      Serial.println("OV2640 detected.");
+    #endif
       is_cam_vis_present = true;
     }
   #endif

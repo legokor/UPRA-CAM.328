@@ -1,8 +1,8 @@
 #ifndef SICL_H
 #define SICL_H
 
-#define DEBUG
-#define DEBUG2
+//#define DEBUG
+//#define DEBUG2
 
 //UPRA BUS
 #define SICL_BAUD 9600

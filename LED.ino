@@ -1,10 +1,12 @@
 bool is_led_on;
+uint8_t status_cntr;
 
 int32_t led_init()
 {
   pinMode(LED, OUTPUT);
   digitalWrite(LED, LOW);  
   is_led_on = false;
+  status_cntr = STATUS_TIMEOUT;
 }
 
 void led_on()
@@ -36,24 +38,39 @@ bool led_is_on()
   return is_led_on;
 }
 
-void led_sd_error_indicator()
+void led_reset_status_cntr()
 {
-  if(card_present)
-  {
-    return;
-  }
-  led_toggle();
+  status_cntr = STATUS_TIMEOUT;
 }
 
 void led_status_indicator()
 {
-  if((card_present) && ((is_cam_ir_present) || (is_cam_vis_present)))
+  if(is_take_picture)
+  {
+    return;
+  }
+  if((card_present) && ((is_cam_ir_present) && (is_cam_vis_present)))
   {
     led_on();
+    return;
   }
-  else if(card_present)
+  if((card_present == false) && ((is_cam_ir_present) || (is_cam_vis_present)))
   {
-    led_off();
+    led_toggle();
+    return;
+  }
+  if((is_cam_ir_present == false) || (is_cam_vis_present == false))
+  {
+    if(status_cntr != 0)
+    {
+      status_cntr--;
+      if(status_cntr == 0)
+      {
+        led_toggle();
+        led_reset_status_cntr();
+      }
+    }
+    return;
   }
 }
 

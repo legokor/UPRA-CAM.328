@@ -121,6 +121,8 @@ int32_t sd_store_image(void)
 {
   int32_t ret = 0;
   
+  led_on();
+  
   #ifdef CAM_VIS_PRESENT
     //Flush the FIFO
     CAM_VIS.flush_fifo();
@@ -148,15 +150,25 @@ int32_t sd_store_image(void)
       CAM_IR.start_capture();
     }
   #endif
-  
+
+  led_off();
+  delay(10);
+#ifdef DEBUG  
   Serial.println(F("start Capture"));
+#endif
+
   #ifdef CAM_VIS_PRESENT
     while((!CAM_VIS.get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)) && (is_cam_vis_present));
   #endif
   #ifdef CAM_IR_PRESENT
     while((!CAM_IR.get_bit(ARDUCHIP_TRIG , CAP_DONE_MASK)) && (is_cam_ir_present));
   #endif
+
+  led_on();
+  delay(10);
+#ifdef DEBUG
   Serial.println(F("Capture Done."));  
+#endif
 
   #ifdef CAM_VIS_PRESENT
     ret = sd_store_vis_image();
@@ -168,6 +180,7 @@ int32_t sd_store_image(void)
   #endif
   sd_store_picture_index();
   intervalometer = intervalometer_timeout;
+  led_on();
   return ret;
 }
 
@@ -189,17 +202,23 @@ int32_t sd_store_vis_image(void)
   }
 
   sd_fifo_lenght = CAM_VIS.read_fifo_length();
+#ifdef DEBUG   
   Serial.print(F("The fifo length is :"));
   Serial.println(sd_fifo_lenght, DEC);
+#endif
   
   if (sd_fifo_lenght >= MAX_FIFO_SIZE) //384K
   {
+  #ifdef DEBUG   
     Serial.println(F("Over size."));
+  #endif
     return -1;
   }
   if (sd_fifo_lenght == 0 ) //0 kb
   {
+  #ifdef DEBUG   
     Serial.println(F("Size is 0."));
+  #endif
     return -2;
   }
   //Consd_struct a file name
@@ -209,8 +228,11 @@ int32_t sd_store_vis_image(void)
   
   //Open the new file
   //imgFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);
-  if(!imgFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END)){
+  if(!imgFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END))
+  {
+  #ifdef DEBUG   
     Serial.println(F("File open failed"));
+  #endif
     return -3;
   }
   CAM_VIS.CS_LOW();
@@ -219,6 +241,7 @@ int32_t sd_store_vis_image(void)
   {
     sd_tmp_last = sd_tmp;
     sd_tmp =  SPI.transfer(0x00);
+    led_toggle();
     //Read JPEG data from FIFO
     if ( (sd_tmp == 0xD9) && (sd_tmp_last == 0xFF) ) //If find the end ,break while,
     {
@@ -228,7 +251,9 @@ int32_t sd_store_vis_image(void)
       imgFile.write(sd_buf, i);    
       //Close the file
   //    imgFile.close();
+    #ifdef DEBUG   
       Serial.println(F("Image save OK."));
+    #endif
       sd_is_header = false;
       i = 0;
     }  
@@ -280,19 +305,26 @@ int32_t sd_store_ir_image(void)
   }
   
   sd_fifo_lenght = CAM_IR.read_fifo_length();
+#ifdef DEBUG   
   Serial.print(F("The fifo length is :"));
   Serial.println(sd_fifo_lenght, DEC);
+#endif
   
   if (sd_fifo_lenght >= MAX_FIFO_SIZE) //384K
   {
+  #ifdef DEBUG   
     Serial.println(F("Over size."));
+  #endif
     return -1;
   }
   if (sd_fifo_lenght == 0 ) //0 kb
   {
+  #ifdef DEBUG   
     Serial.println(F("Size is 0."));
+  #endif
     return -2;
   }
+  
   //Consd_struct a file name
   sprintf(sd_str, "%05d_ir.jpg", picture_index);
 //  itoa(picture_index, sd_str, 10);
@@ -300,14 +332,18 @@ int32_t sd_store_ir_image(void)
   
   //Open the new file
   //imgFile = SD.open(sd_str, O_WRITE | O_CREAT | O_TRUNC);
-  if(!imgFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END)){
+  if(!imgFile.open(sd_str, O_RDWR | O_CREAT | O_AT_END))
+  {
+  #ifdef DEBUG 
     Serial.println(F("File open failed"));
+  #endif
     return -3;
   }
   CAM_IR.CS_LOW();
   CAM_IR.set_fifo_burst();
   while ( sd_fifo_lenght-- )
   {
+    led_toggle();
     sd_tmp_last = sd_tmp;
     sd_tmp =  SPI.transfer(0x00);
     //Read JPEG data from FIFO
@@ -319,7 +355,10 @@ int32_t sd_store_ir_image(void)
       imgFile.write(sd_buf, i);    
       //Close the file
   //    imgFile.close();
+    #ifdef DEBUG 
       Serial.println(F("Image save OK."));
+    #endif
+    
       sd_is_header = false;
       i = 0;
     }  

@@ -51,7 +51,7 @@ void setup() {
 
 void loop() {
   // put your main code here, to run repeatedly:
-  led_status_indicator();
+//  led_status_indicator();
   if (stringComplete) 
   {
    // Serial.println(inputString);

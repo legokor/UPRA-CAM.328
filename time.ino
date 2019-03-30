@@ -28,5 +28,5 @@ ISR(TIMER1_COMPA_vect)
       is_take_picture = true;
     }
   }
-  led_sd_error_indicator();
+  led_status_indicator();
 }

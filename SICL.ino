@@ -179,7 +179,7 @@ int processTMHKRcommand(int msg_index)
 int send_hk_packet(void)
 {
     get_pcb_temperature();
-    Serial.print(F("$TCHKD,"));
+    Serial.print(F("$CMHKD,"));
     Serial.print(pcb_temp, DEC);
     if(is_cam_vis_present)
     {
